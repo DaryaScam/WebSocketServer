@@ -1,0 +1,19 @@
+{
+  "name": "websocketserver",
+  "version": "1.0.0",
+  "description": "Simple Nodejs WebSocket Server",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx ts-node index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "uuid": "^11.0.3",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.4",
+    "@types/ws": "^8.5.13"
+  }
+}
