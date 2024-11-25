@@ -4,7 +4,7 @@
   "description": "Simple Nodejs WebSocket Server",
   "main": "index.js",
   "scripts": {
-    "start": "npx ts-node index.ts"
+    "start": "npx tsx index.ts"
   },
   "author": "",
   "license": "ISC",
