@@ -22,12 +22,20 @@ class MessengerAuthenticationChannel {
             throw new Error('Client already set');
         }
 
+        if (this.messenger === client) {
+            throw new Error('Client and Messenger cannot be the same');
+        }
+
         this.client = client;
     }
 
     setMessenger(messenger: WebSocket) {
         if (this.messenger) {
             throw new Error('Messenger already set');
+        }
+
+        if (this.client === messenger) {
+            throw new Error('Client and Messenger cannot be the same');
         }
 
         this.messenger = messenger;
@@ -60,7 +68,6 @@ const getChannel = (channel: string, client: WebSocket): MessengerAuthentication
 }
 
 server.on('connection', (ws: WebSocket, req) => {
-    ws.uuid = uuidv4();
     let url = req.url;
 
     if (!url) {
@@ -79,7 +86,7 @@ server.on('connection', (ws: WebSocket, req) => {
         return;
     }
 
-    let logprefix = `${clientChannel}/${ws.uuid} -> `;
+    let logprefix = `${clientChannel} -> `;
     console.log(logprefix, 'WSClient connected');
 
     let channel = getChannel(clientChannel, ws);
@@ -89,24 +96,31 @@ server.on('connection', (ws: WebSocket, req) => {
             return;
         }
 
-        let messageStr = message.toString();
-        let messageObj = JSON.parse(messageStr);
-        
-        switch (messageObj.type) {
-            case 'register-client':
-                channel.setClient(ws);
-                break;
-            case 'register-messenger':
-                channel.setMessenger(ws);
-                break;
-            case 'message':
-                channel.send(messageStr, ws);
-                break;
+        try {
+            let messageStr = message.toString();
+            console.log(logprefix, 'Message received', messageStr);
+
+            let messageObj = JSON.parse(messageStr);
+            
+            switch (messageObj.type) {
+                case 'register-client':
+                    channel.setClient(ws);
+                    ws.send(JSON.stringify({ result: 'ok' }));
+                    break;
+                case 'register-messenger':
+                    channel.setMessenger(ws);
+                    ws.send(JSON.stringify({ result: 'ok' }));
+                    break;
+                case 'message':
+                    channel.send(messageStr, ws);
+                    ws.send(JSON.stringify({ result: 'ok' }));
+                    break;
+            }
+
+        } catch (error: Error | any) {
+            console.error(logprefix, 'Error processing message', error);
+            ws.send(JSON.stringify({ result: 'error', message: error.message }));
         }
-
-        console.log(logprefix, 'Message received', messageStr);
-
-        channel.send(messageStr, ws);
     });
 
     ws.on('close', () => {
