@@ -103,11 +103,11 @@ server.on('connection', (ws: WebSocket, req) => {
             let messageObj = JSON.parse(messageStr);
             
             switch (messageObj.type) {
-                case 'register-client':
+                case 'hello-client':
                     channel.setClient(ws);
                     ws.send(JSON.stringify({ result: 'ok' }));
                     break;
-                case 'register-messenger':
+                case 'hello-messenger':
                     channel.setMessenger(ws);
                     ws.send(JSON.stringify({ result: 'ok' }));
                     break;
