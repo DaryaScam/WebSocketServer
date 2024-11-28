@@ -105,26 +105,26 @@ server.on('connection', (ws: WebSocket, req) => {
             switch (messageObj.type) {
                 case 'hello-client':
                     channel.setClient(ws);
-                    ws.send(JSON.stringify({ result: 'ok' }));
+                    ws.send(JSON.stringify({ type: "ack" }));
                     break;
                 case 'hello-messenger':
                     channel.setMessenger(ws);
-                    ws.send(JSON.stringify({ result: 'ok' }));
+                    ws.send(JSON.stringify({ type: "ack" }));
                     break;
                 case 'message':
                     channel.send(messageStr, ws);
-                    ws.send(JSON.stringify({ result: 'ok' }));
+                    ws.send(JSON.stringify({ type: "ack" }));
                     break;
             }
 
         } catch (error: Error | any) {
-            console.error(logprefix, 'Error processing message', error);
-            ws.send(JSON.stringify({ result: 'error', message: error.message }));
+            console.error(logprefix, "Error processing message", error);
+            ws.send(JSON.stringify({ type: "error", data: error.message }));
         }
     });
 
-    ws.on('close', () => {
-        console.log(logprefix, 'Client disconnected');
+    ws.on("close", () => {
+        console.log(logprefix, "Client disconnected");
         
         channel?.dispose();
         channels.delete(clientChannel);
