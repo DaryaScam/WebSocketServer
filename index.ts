@@ -1,5 +1,21 @@
-import { WebSocket } from 'ws';
-import { v4 as uuidv4 } from 'uuid';
+import { WebSocket } from "ws";
+import { v4 as uuidv4 } from "uuid";
+
+const MSGT = {
+    HELLO_CLIENT: "hello-client",
+    HELLO_MESSENGER: "hello-messenger",
+
+    CHANNEL_READY: "channel-ready",
+
+    MESSAGE: "message",
+    ACK: "ack",
+    ERROR: "error",
+}
+
+interface Message {
+    type: string;
+    data?: any;
+}
 
 const DEFAULT_PORT = 8080;
 const port = process.env.PORT
@@ -17,6 +33,17 @@ class MessengerAuthenticationChannel {
         this.channelID = channelID;
     }
 
+    checkReady() {
+        if (!this.client || !this.messenger) {
+            return;
+        }
+
+        let msg = JSON.stringify({ type: MSGT.CHANNEL_READY });
+
+        this.client.send(msg);
+        this.messenger.send(msg);
+    }
+
     setClient(client: WebSocket) {
         if (this.client) {
             throw new Error('Client already set');
@@ -27,6 +54,8 @@ class MessengerAuthenticationChannel {
         }
 
         this.client = client;
+
+        this.checkReady();
     }
 
     setMessenger(messenger: WebSocket) {
@@ -39,6 +68,8 @@ class MessengerAuthenticationChannel {
         }
 
         this.messenger = messenger;
+
+        this.checkReady();
     }
 
     send(message: string, exclude: WebSocket) {
@@ -65,6 +96,12 @@ const getChannel = (channel: string, client: WebSocket): MessengerAuthentication
     let reschannel = channels.get(channel)!;
 
     return reschannel;
+}
+
+const sendMessage = (prefix: string, ws: WebSocket, message: Message) => {
+    let msg = JSON.stringify(message);
+    console.log(prefix, 'Sending message', msg);
+    ws.send(msg);
 }
 
 server.on('connection', (ws: WebSocket, req) => {
@@ -100,26 +137,25 @@ server.on('connection', (ws: WebSocket, req) => {
             let messageStr = message.toString();
             console.log(logprefix, 'Message received', messageStr);
 
-            let messageObj = JSON.parse(messageStr);
+            let messageObj: Message = JSON.parse(messageStr);
             
             switch (messageObj.type) {
                 case 'hello-client':
                     channel.setClient(ws);
-                    ws.send(JSON.stringify({ type: "ack" }));
+                    sendMessage(logprefix, ws, { type: MSGT.ACK});
                     break;
                 case 'hello-messenger':
                     channel.setMessenger(ws);
-                    ws.send(JSON.stringify({ type: "ack" }));
+                    sendMessage(logprefix, ws, { type: MSGT.ACK });
                     break;
                 case 'message':
                     channel.send(messageStr, ws);
-                    ws.send(JSON.stringify({ type: "ack" }));
                     break;
             }
 
         } catch (error: Error | any) {
             console.error(logprefix, "Error processing message", error);
-            ws.send(JSON.stringify({ type: "error", data: error.message }));
+            sendMessage(logprefix, ws, { type: MSGT.ERROR, data: error.message });
         }
     });
 
