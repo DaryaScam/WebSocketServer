@@ -39,18 +39,19 @@ class MessengerAuthenticationChannel {
         }
 
         let msg = JSON.stringify({ type: MSGT.CHANNEL_READY });
-
+        
         this.client.send(msg);
         this.messenger.send(msg);
+        console.log(this.channelID, "->", "Channel ready");
     }
 
     setClient(client: WebSocket) {
         if (this.client) {
-            throw new Error('Client already set');
+            throw new Error("Client already set");
         }
 
         if (this.messenger === client) {
-            throw new Error('Client and Messenger cannot be the same');
+            throw new Error("Client and Messenger cannot be the same");
         }
 
         this.client = client;
@@ -60,11 +61,11 @@ class MessengerAuthenticationChannel {
 
     setMessenger(messenger: WebSocket) {
         if (this.messenger) {
-            throw new Error('Messenger already set');
+            throw new Error("Messenger already set");
         }
 
         if (this.client === messenger) {
-            throw new Error('Client and Messenger cannot be the same');
+            throw new Error("Client and Messenger cannot be the same");
         }
 
         this.messenger = messenger;
@@ -100,55 +101,55 @@ const getChannel = (channel: string, client: WebSocket): MessengerAuthentication
 
 const sendMessage = (prefix: string, ws: WebSocket, message: Message) => {
     let msg = JSON.stringify(message);
-    console.log(prefix, 'Sending message', msg);
+    console.log(prefix, "Sending message", msg);
     ws.send(msg);
 }
 
-server.on('connection', (ws: WebSocket, req) => {
+server.on("connection", (ws: WebSocket, req) => {
     let url = req.url;
 
     if (!url) {
-        ws.close(1008, 'Invalid URL');
+        ws.close(1008, "Invalid URL");
         return;
     }
 
-    if (!url.startsWith('/channel')) {
-        ws.close(1008, 'Invalid URL');
+    if (!url.startsWith("/channel")) {
+        ws.close(1008, "Invalid URL");
         return;
     }
 
-    let clientChannel = url.replace('/channel/', '');
+    let clientChannel = url.replace("/channel/", "");
     if (!clientChannel || clientChannel.length < 16) {
-        ws.close(1008, 'Invalid URL. Channel must be at least 16 characters long');
+        ws.close(1008, "Invalid URL. Channel must be at least 16 characters long");
         return;
     }
 
     let logprefix = `${clientChannel} -> `;
-    console.log(logprefix, 'WSClient connected');
+    console.log(logprefix, "WSClient connected");
 
     let channel = getChannel(clientChannel, ws);
     
-    ws.on('message', (message: string) => {
+    ws.on("message", (message: string) => {
         if (!message) {
             return;
         }
 
         try {
             let messageStr = message.toString();
-            console.log(logprefix, 'Message received', messageStr);
+            console.log(logprefix, "Message received", messageStr);
 
             let messageObj: Message = JSON.parse(messageStr);
             
             switch (messageObj.type) {
-                case 'hello-client':
+                case "hello-client":
                     channel.setClient(ws);
                     sendMessage(logprefix, ws, { type: MSGT.ACK});
                     break;
-                case 'hello-messenger':
+                case "hello-messenger":
                     channel.setMessenger(ws);
                     sendMessage(logprefix, ws, { type: MSGT.ACK });
                     break;
-                case 'message':
+                case "message":
                     channel.send(messageStr, ws);
                     break;
             }
