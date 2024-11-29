@@ -44,7 +44,7 @@ class MessengerAuthenticationChannel {
             this.client!.send(msg);
             this.messenger!.send(msg);
             console.log(this.channelID, "->", "Channel ready");
-        }, 1000
+        }, 1000);
     }
 
     setClient(client: WebSocket) {
