@@ -162,9 +162,12 @@ server.on("connection", (ws: WebSocket, req) => {
 
     ws.on("close", () => {
         console.log(logprefix, "Client disconnected");
-        
-        channel?.dispose();
-        channels.delete(clientChannel);
+
+        if (channel.client === ws || channel.messenger === ws) {
+            console.log(logprefix, "Disposing channel");
+            channel.dispose();
+            channels.delete(clientChannel);
+        }
     });
 });
 
