@@ -40,9 +40,11 @@ class MessengerAuthenticationChannel {
 
         let msg = JSON.stringify({ type: MSGT.CHANNEL_READY });
         
-        this.client.send(msg);
-        this.messenger.send(msg);
-        console.log(this.channelID, "->", "Channel ready");
+        setTimeout(() => {
+            this.client!.send(msg);
+            this.messenger!.send(msg);
+            console.log(this.channelID, "->", "Channel ready");
+        }, 1000
     }
 
     setClient(client: WebSocket) {
