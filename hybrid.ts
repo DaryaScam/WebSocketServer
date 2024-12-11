@@ -48,8 +48,7 @@ const getChannel = (channel: string): HybridChannel => {
 }
 
 
-export const processWebSessionSocket = (ws: WebSocket, req: IncomingMessage) => {
-    console.log("WebSessionSocket connecting...", req.url);
+export const processHybridSocket = (ws: WebSocket, req: IncomingMessage) => {
     let clientChannelId = req.url!.replace("/cable/connect/", "");
     if (clientChannelId.length != WS_HYBRID_ID_LENGTH) {
         ws.close(1008, "Invalid channel ID!");

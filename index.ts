@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import { v4 as uuidv4 } from "uuid";
 import { processWebSessionSocket } from "./websession";
+import { processHybridSocket } from "./hybrid";
 
 const DEFAULT_PORT = 8080;
 const port = process.env.PORT
@@ -15,7 +16,7 @@ server.on("connection", (ws: WebSocket, req) => {
     if (url.startsWith("/channel")) {
         processWebSessionSocket(ws, req);
     } else if (url.startsWith("/cable/connect/")) {
-
+        processHybridSocket(ws, req);
     } else {
         ws.close(1008, "Invalid URL");
         return;
